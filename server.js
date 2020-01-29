@@ -1,5 +1,8 @@
 const express = require('express')
 const pg = require('pg')
+const { db } = require('./pgAdaptor');
+const graphqlHTTP = require('express-graphql')
+// const gql = require('graphql')
 
 // SmartQueue Limiter
 const SmartQueue = require('smart-request-balancer');
@@ -7,7 +10,7 @@ const SmartQueue = require('smart-request-balancer');
 const app = express()
 // configs come from standard PostgreSQL env vars
 // https://www.postgresql.org/docs/9.6/static/libpq-envars.html
-const pool = new pg.Pool()
+const pool = new pg.Pool({ db })
 
 // SmartQueue configurations
 const config = {
@@ -44,7 +47,7 @@ const config = {
 const queue = new SmartQueue(config);
 
 const queryHandler = (req, res, next) => {
-  queue(pool).query(req.sqlQuery).then((r) => {
+  pool.query(req.sqlQuery).then((r) => {
     return res.json(r.rows || [])
   }).catch(next)
 }
